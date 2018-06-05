@@ -187,15 +187,7 @@ Value* NBlock::codeGen(CodeGenContext& context)
   return expression.codeGen(context);
   }
 */
-/*
-  Value* NReturnStatement::codeGen(CodeGenContext& context)
-  {
-  std::cout << "Generating return code for " << typeid(expression).name() << endl;
-  Value *returnValue = expression.codeGen(context);
-  context.setCurrentReturnValue(returnValue);
-  return returnValue;
-  }
-*/
+
 Value* NVariableDeclaration::codeGen(CodeGenContext& context)
 {
   std::cout << "Creating variable declaration " << type.name << " " << id.name << endl;
@@ -269,15 +261,27 @@ Value* NIfStatement::codeGen(CodeGenContext& context) {
   Function* theFunction = context.builder.GetInsertBlock()->getParent();
 
   BasicBlock* thenBB = BasicBlock::Create(MyContext, "then", theFunction);
+  BasicBlock* falseBB = BasicBlock::Create(MyContext, "else", theFunction);
   BasicBlock* mergeBB = BasicBlock::Create(MyContext, "ifcont", theFunction);
 
-  context.builder.CreateCondBr(condValue, thenBB, mergeBB);
+  if (this->hasElse) {
+    context.builder.CreateCondBr(condValue, thenBB, falseBB);
+  } else {
+    context.builder.CreateCondBr(condValue, thenBB, mergeBB);
+  }
 
   context.builder.SetInsertPoint(thenBB);
   this->trueBlock.codeGen(context);
   if (thenBB->getTerminator() == nullptr) {
     context.builder.CreateBr(mergeBB);
   }
+
+  if (this->hasElse) {
+    context.builder.SetInsertPoint(falseBB);
+    this->falseBlock.codeGen(context);
+    context.builder.CreateBr(mergeBB);
+  }
+  
   context.builder.SetInsertPoint(mergeBB);
   
   return NULL;

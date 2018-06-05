@@ -2,3 +2,4 @@
 magellanc
 *.o
 *.ll
+parser.cpp

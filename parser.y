@@ -73,6 +73,7 @@ numeric : TINTEGER { $$ = new NInteger(atol($1->c_str())); }
 ;
 
 if_stmt : TIF expr block { $$ = new NIfStatement(*$2, *$3); }
+| TIF expr block TELSE block { $$ = new NIfStatement(*$2, *$3, *$5); }
 ;
 
 binary : TCEQ | TCNE | TCLT | TCLE | TCGT | TCGE | TPLUS | TMINUS | TMUL | TDIV | TAND | TOR | TXOR | TSHIFTL | TSHIFTR
