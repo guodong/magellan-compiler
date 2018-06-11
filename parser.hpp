@@ -65,7 +65,8 @@
      TXOR = 281,
      TMOD = 282,
      TSHIFTR = 283,
-     TSHIFTL = 284
+     TSHIFTL = 284,
+     TEXTERN = 285
    };
 #endif
 /* Tokens.  */
@@ -96,6 +97,7 @@
 #define TMOD 282
 #define TSHIFTR 283
 #define TSHIFTL 284
+#define TEXTERN 285
 
 
 
@@ -110,11 +112,12 @@ typedef union YYSTYPE
   NIdentifier* ident;
   NVariableDeclaration* var_decl;
   std::vector<NVariableDeclaration*>* varvec;
+  std::vector<NExpression*>* exprvec;
   std::string* string;
   int token;
 }
 /* Line 1529 of yacc.c.  */
-#line 118 "parser.hpp"
+#line 121 "parser.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

@@ -218,6 +218,8 @@ Value* NVariableDeclaration::codeGen(CodeGenContext& context)
 
 Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
   std::cout << "Creating function: " << id.name << endl;
+
+ 
   
   vector<Type*> argTypes;
   VariableList::const_iterator it;
@@ -230,6 +232,19 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 
   context.builder.SetInsertPoint(bblock);
   //context.pushBlock(bblock);
+
+   // intrinsic
+  Type *floatTy = Type::getFloatTy(MyContext);
+
+
+  std::vector<Type*> List;
+  List.push_back(floatTy);
+  //FunctionType *fnTy = FunctionType::get(floatTy, List, false);
+
+  Function *fsin = Intrinsic::getDeclaration(context.module, Intrinsic::sin, List);
+  Value* v = context.builder.CreateCall(fsin, NULL);
+  // intrinsic end
+  
 
   Function::arg_iterator argsValues = function->arg_begin();
   Value* argumentValue;
@@ -247,6 +262,8 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 
   context.builder.CreateRet(context.getCurrentReturnValue());
 
+  
+  
   //context.popBlock();
 
   return function;
@@ -293,4 +310,36 @@ Value* NReturnStatement::codeGen(CodeGenContext& context)
   Value *returnValue = expression.codeGen(context);
   context.setCurrentReturnValue(returnValue);
   return returnValue;
+}
+
+Value* NExternDeclaration::codeGen(CodeGenContext& context)
+{
+  vector<Type*> argTypes;
+  VariableList::const_iterator it;
+  for (it = arguments.begin(); it != arguments.end(); it++) {
+    argTypes.push_back(typeOf((**it).type));
+  }
+  FunctionType *ftype = FunctionType::get(typeOf(type), makeArrayRef(argTypes), false);
+  Function *function = Function::Create(ftype, GlobalValue::ExternalLinkage, id.name.c_str(), context.module);
+  return function;
+}
+
+Value* NMethodCall::codeGen(CodeGenContext& context)
+{
+  std::cout << "Creating method call: " << id.name << endl;
+  Function *function = context.module->getFunction(id.name.c_str());
+  if (function == NULL) {
+    std::cerr << "no such function " << id.name << endl;
+  }
+  std::vector<Value*> args;
+  ExpressionList::const_iterator it;
+  for (it = arguments.begin(); it != arguments.end(); it++) {
+    args.push_back((**it).codeGen(context));
+  }
+
+  return context.builder.CreateCall(function, makeArrayRef(args));
+  
+  //CallInst *call = CallInst::Create(function, makeArrayRef(args), "", context.currentBlock());
+
+
 }

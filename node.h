@@ -112,3 +112,24 @@ class NReturnStatement : public NStatement {
   
   virtual llvm::Value* codeGen(CodeGenContext& context);
 };
+
+class NExternDeclaration : public NStatement {
+ public:
+  const NIdentifier& type;
+  const NIdentifier& id;
+  VariableList arguments;
+  NExternDeclaration(const NIdentifier& type, const NIdentifier& id,
+                     const VariableList& arguments) :
+      type(type), id(id), arguments(arguments) {}
+  virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+class NMethodCall : public NExpression {
+ public:
+  const NIdentifier& id;
+  ExpressionList arguments;
+  NMethodCall(const NIdentifier& id, ExpressionList& arguments) :
+      id(id), arguments(arguments) { }
+  NMethodCall(const NIdentifier& id) : id(id) { }
+  virtual llvm::Value* codeGen(CodeGenContext& context);
+};

@@ -14,18 +14,20 @@
   NIdentifier* ident;
   NVariableDeclaration* var_decl;
   std::vector<NVariableDeclaration*>* varvec;
+  std::vector<NExpression*>* exprvec;
   std::string* string;
   int token;
 }
 
 %token <string> TIDENTIFIER TINTEGER
-%token <token> TLPAREN TRPAREN TLBRACE TRBRACE TCOMMA TEQUAL TIF TELSE TCEQ TCNE TCLT TCLE TCGT TCGE TPLUS TMINUS TMUL TDIV TRETURN TAND TOR TXOR TMOD TSHIFTR TSHIFTL
+%token <token> TLPAREN TRPAREN TLBRACE TRBRACE TCOMMA TEQUAL TIF TELSE TCEQ TCNE TCLT TCLE TCGT TCGE TPLUS TMINUS TMUL TDIV TRETURN TAND TOR TXOR TMOD TSHIFTR TSHIFTL TEXTERN
 
 %type <ident> ident
 %type <block> program stmts block
-%type <stmt> stmt var_decl func_decl if_stmt
+%type <stmt> stmt var_decl func_decl if_stmt extern_decl
 %type <expr> expr numeric
 %type <varvec> func_decl_args
+%type <exprvec> call_args
 %type <token> binary
 
 %start program
@@ -41,7 +43,9 @@ stmts : stmt { $$ = new NBlock(); $$->statements.push_back($<stmt>1); }
 
 stmt : var_decl
 | func_decl
+| extern_decl
 | if_stmt
+| expr
 | TRETURN expr { $$ = new NReturnStatement(*$2); }
 ;
 
@@ -67,6 +71,8 @@ expr : numeric
 | ident { $<ident>$ = $1; }
 | TLPAREN expr TRPAREN { $$ = $2; }
 | expr binary expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
+| ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }
+| ident TLPAREN call_args TRPAREN { $$ = new NMethodCall(*$1, *$3); delete $3; }
 ;
 
 numeric : TINTEGER { $$ = new NInteger(atol($1->c_str())); }
@@ -77,6 +83,14 @@ if_stmt : TIF expr block { $$ = new NIfStatement(*$2, *$3); }
 ;
 
 binary : TCEQ | TCNE | TCLT | TCLE | TCGT | TCGE | TPLUS | TMINUS | TMUL | TDIV | TAND | TOR | TXOR | TSHIFTL | TSHIFTR
+;
+
+extern_decl : TEXTERN ident ident TLPAREN func_decl_args TRPAREN { $$ = new NExternDeclaration(*$2, *$3, *$5); delete $5; }
+;
+
+call_args : /*blank*/  { $$ = new ExpressionList(); }
+| expr { $$ = new ExpressionList(); $$->push_back($1); }
+| call_args TCOMMA expr  { $1->push_back($3); }
 ;
 
 %%

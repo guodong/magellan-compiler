@@ -16,6 +16,7 @@
 "if"			return TOKEN(TIF);
 "else"			return TOKEN(TELSE);
 "return"		return TOKEN(TRETURN);
+"extern"		return TOKEN(TEXTERN);
 
 [a-zA-Z_][a-zA-Z0-9_]*	SAVE_TOKEN; return TIDENTIFIER;
 [0-9]+			SAVE_TOKEN; return TINTEGER;
